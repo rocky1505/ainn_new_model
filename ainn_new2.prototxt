@@ -167,19 +167,14 @@ layers {
     num_output: 2
   }
 }
-layers {
-  name: "prob"
-  type: SOFTMAX
-  bottom: "fc8"
-  top: "prob"
-}
+
 layers {
   name: "conv_new"
   type: "Convolution"
-  bottom: "conv5"  # Replace with the appropriate previous layer
+  bottom: "conv5"
   top: "conv_new"
   convolution_param {
-    num_output: 256  # More output filters
+    num_output: 256
     kernel_size: 3
     stride: 1
     pad: 1
@@ -211,7 +206,7 @@ layers {
 }
 layers {
   name: "prob"
-  type: "Softmax"
-  bottom: "fc_final"
+  type: SOFTMAX
+  bottom: "fc8"
   top: "prob"
 }
