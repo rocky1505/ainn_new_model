@@ -5,6 +5,7 @@ input_dim: 3
 input_dim: 227
 input_dim: 227
 
+# Existing layers with frozen weights
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -14,6 +15,16 @@ layers {
     num_output: 96
     kernel_size: 7
     stride: 4
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+  param {
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -54,6 +65,9 @@ layers {
     pad: 2
     kernel_size: 5
   }
+  param {
+    lr_mult: 0  # Freeze this layer
+  }
 }
 layers {
   name: "relu2"
@@ -93,6 +107,9 @@ layers {
     pad: 1
     kernel_size: 3
   }
+  param {
+    lr_mult: 0  # Freeze this layer
+  }
 }
 layers {
   name: "relu3"
@@ -119,6 +136,9 @@ layers {
   inner_product_param {
     num_output: 512
   }
+  param {
+    lr_mult: 0  # Freeze this layer
+  }
 }
 layers {
   name: "relu6"
@@ -143,6 +163,9 @@ layers {
   inner_product_param {
     num_output: 512
   }
+  param {
+    lr_mult: 0  # Freeze this layer
+  }
 }
 layers {
   name: "relu7"
@@ -165,49 +188,66 @@ layers {
   bottom: "fc7"
   top: "fc8"
   inner_product_param {
-    num_output: 2
+    num_output: 2  # Number of classes for gender identification
   }
+  param {
+    lr_mult: 0  # Freeze this layer
+  }
+}
+layers {
+  name: "prob"
+  type: SOFTMAX
+  bottom: "fc8"
+  top: "prob"
 }
 
+# Adding additional layers
 layers {
-  name: "conv_new"
+  name: "conv4"
   type: CONVOLUTION
-  bottom: "conv3"
-  top: "conv_new"
+  bottom: "pool5"
+  top: "conv4"
   convolution_param {
-    num_output: 256
+    num_output: 256  # Adjust based on your requirement
     kernel_size: 3
-    stride: 1
     pad: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layers {
-  name: "relu_new"
+  name: "relu4"
   type: RELU
-  bottom: "conv_new"
-  top: "conv_new"
+  bottom: "conv4"
+  top: "conv4"
 }
 layers {
-  name: "fc_new"
-  type: INNER_PRODUCT
-  bottom: "fc7"
-  top: "fc_new"
-  inner_product_param {
-    num_output: 512
+  name: "drop8"
+  type: DROPOUT
+  bottom: "conv4"
+  top: "conv4"
+  dropout_param {
+    dropout_ratio: 0.5
   }
 }
 layers {
-  name: "fc_final"
+  name: "fc9"
   type: INNER_PRODUCT
-  bottom: "fc_new"
-  top: "fc_final"
+  bottom: "conv4"
+  top: "fc9"
   inner_product_param {
-    num_output: 4
+    num_output: 2  # Number of classes
   }
 }
 layers {
-  name: "softmax_final"
+  name: "prob_new"
   type: SOFTMAX
-  bottom: "fc_final"
-  top: "softmax_final"
+  bottom: "fc9"
+  top: "prob_new"
 }
