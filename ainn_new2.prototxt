@@ -4,6 +4,7 @@ input_dim: 10
 input_dim: 3
 input_dim: 227
 input_dim: 227
+
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -93,8 +94,8 @@ layers {
     kernel_size: 3
   }
 }
-layers{
-  name: "relu3" 
+layers {
+  name: "relu3"
   type: RELU
   bottom: "conv3"
   top: "conv3"
@@ -167,11 +168,16 @@ layers {
     num_output: 2
   }
 }
-
+layers {
+  name: "softmax_prob"
+  type: SOFTMAX
+  bottom: "fc8"
+  top: "softmax_prob"
+}
 layers {
   name: "conv_new"
-  type: "Convolution"
-  bottom: "conv5"
+  type: CONVOLUTION
+  bottom: "conv3"  # Corrected this to connect to the last defined conv layer
   top: "conv_new"
   convolution_param {
     num_output: 256
@@ -182,14 +188,14 @@ layers {
 }
 layers {
   name: "relu_new"
-  type: "ReLU"
+  type: RELU
   bottom: "conv_new"
   top: "conv_new"
 }
 layers {
   name: "fc_new"
-  type: "InnerProduct"
-  bottom: "fc7"
+  type: INNER_PRODUCT
+  bottom: "fc7"  # Connecting it after fc7 as you mentioned
   top: "fc_new"
   inner_product_param {
     num_output: 512
@@ -197,7 +203,7 @@ layers {
 }
 layers {
   name: "fc_final"
-  type: "InnerProduct"
+  type: INNER_PRODUCT
   bottom: "fc_new"
   top: "fc_final"
   inner_product_param {
@@ -205,8 +211,8 @@ layers {
   }
 }
 layers {
-  name: "prob"
+  name: "softmax_final"
   type: SOFTMAX
-  bottom: "fc8"
-  top: "prob"
+  bottom: "fc_final"
+  top: "softmax_final"
 }
