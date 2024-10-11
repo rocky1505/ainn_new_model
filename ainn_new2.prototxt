@@ -168,16 +168,11 @@ layers {
     num_output: 2
   }
 }
-layers {
-  name: "softmax_prob"
-  type: SOFTMAX
-  bottom: "fc8"
-  top: "softmax_prob"
-}
+
 layers {
   name: "conv_new"
   type: CONVOLUTION
-  bottom: "conv3"  # Corrected this to connect to the last defined conv layer
+  bottom: "conv3"
   top: "conv_new"
   convolution_param {
     num_output: 256
@@ -195,7 +190,7 @@ layers {
 layers {
   name: "fc_new"
   type: INNER_PRODUCT
-  bottom: "fc7"  # Connecting it after fc7 as you mentioned
+  bottom: "fc7"
   top: "fc_new"
   inner_product_param {
     num_output: 512
