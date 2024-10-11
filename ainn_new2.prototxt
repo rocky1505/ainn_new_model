@@ -15,13 +15,6 @@ layers {
     num_output: 96
     kernel_size: 7
     stride: 4
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
   }
   param {
     lr_mult: 0  # Freeze this layer
@@ -32,6 +25,9 @@ layers {
   type: RELU
   bottom: "conv1"
   top: "conv1"
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "pool1"
@@ -43,6 +39,9 @@ layers {
     kernel_size: 3
     stride: 2
   }
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "norm1"
@@ -53,6 +52,9 @@ layers {
     local_size: 5
     alpha: 0.0001
     beta: 0.75
+  }
+  param {
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -74,6 +76,9 @@ layers {
   type: RELU
   bottom: "conv2"
   top: "conv2"
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "pool2"
@@ -85,6 +90,9 @@ layers {
     kernel_size: 3
     stride: 2
   }
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "norm2"
@@ -95,6 +103,9 @@ layers {
     local_size: 5
     alpha: 0.0001
     beta: 0.75
+  }
+  param {
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -116,22 +127,28 @@ layers {
   type: RELU
   bottom: "conv3"
   top: "conv3"
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
-  name: "pool5"
+  name: "pool3"
   type: POOLING
   bottom: "conv3"
-  top: "pool5"
+  top: "pool3"
   pooling_param {
     pool: MAX
     kernel_size: 3
     stride: 2
   }
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "fc6"
   type: INNER_PRODUCT
-  bottom: "pool5"
+  bottom: "pool3"
   top: "fc6"
   inner_product_param {
     num_output: 512
@@ -145,6 +162,9 @@ layers {
   type: RELU
   bottom: "fc6"
   top: "fc6"
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "drop6"
@@ -172,6 +192,9 @@ layers {
   type: RELU
   bottom: "fc7"
   top: "fc7"
+  param {
+    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+  }
 }
 layers {
   name: "drop7"
@@ -190,9 +213,6 @@ layers {
   inner_product_param {
     num_output: 2  # Number of classes for gender identification
   }
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "prob"
@@ -201,14 +221,14 @@ layers {
   top: "prob"
 }
 
-# Adding additional layers
+# Adding additional layers to enhance model performance
 layers {
   name: "conv4"
   type: CONVOLUTION
-  bottom: "pool5"
+  bottom: "pool3"
   top: "conv4"
   convolution_param {
-    num_output: 256  # Adjust based on your requirement
+    num_output: 256
     kernel_size: 3
     pad: 1
     stride: 1
@@ -219,6 +239,9 @@ layers {
       type: "constant"
       value: 0
     }
+  }
+  param {
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
@@ -243,6 +266,9 @@ layers {
   top: "fc9"
   inner_product_param {
     num_output: 2  # Number of classes
+  }
+  param {
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
