@@ -1,11 +1,10 @@
 name: "CaffeNet"
 input: "data"
-input_dim: 10
-input_dim: 3
-input_dim: 227
-input_dim: 227
+input_dim: 10  # batch size
+input_dim: 3   # channels (RGB)
+input_dim: 227 # height
+input_dim: 227 # width
 
-# Convolutional Layers
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -15,9 +14,6 @@ layers {
     num_output: 96
     kernel_size: 7
     stride: 4
-  }
-  param {
-    lr_mult: 0.1  # Reduced learning rate for early layers
   }
 }
 layers {
@@ -48,8 +44,6 @@ layers {
     beta: 0.75
   }
 }
-
-# Unfreezing conv2 for fine-tuning with adjusted learning rate
 layers {
   name: "conv2"
   type: CONVOLUTION
@@ -59,9 +53,6 @@ layers {
     num_output: 256
     pad: 2
     kernel_size: 5
-  }
-  param {
-    lr_mult: 0.1  # Unfreeze with a lower learning rate for better fine-tuning
   }
 }
 layers {
@@ -92,8 +83,6 @@ layers {
     beta: 0.75
   }
 }
-
-# Unfreezing conv3 for fine-tuning
 layers {
   name: "conv3"
   type: CONVOLUTION
@@ -104,9 +93,6 @@ layers {
     pad: 1
     kernel_size: 3
   }
-  param {
-    lr_mult: 0.1  # Unfreezing conv3 with fine-tuning
-  }
 }
 layers {
   name: "relu3"
@@ -114,88 +100,8 @@ layers {
   bottom: "conv3"
   top: "conv3"
 }
-layers {
-  name: "pool5"
-  type: POOLING
-  bottom: "conv3"
-  top: "pool5"
-  pooling_param {
-    pool: MAX
-    kernel_size: 3
-    stride: 2
-  }
-}
 
-# Fully connected layers with increased capacity and dropout
-layers {
-  name: "fc6"
-  type: INNER_PRODUCT
-  bottom: "pool5"
-  top: "fc6"
-  inner_product_param {
-    num_output: 1024  # Increased from 512 for better feature abstraction
-  }
-}
-layers {
-  name: "relu6"
-  type: RELU
-  bottom: "fc6"
-  top: "fc6"
-}
-layers {
-  name: "drop6"
-  type: DROPOUT
-  bottom: "fc6"
-  top: "fc6"
-  dropout_param {
-    dropout_ratio: 0.6  # Increased dropout for regularization
-  }
-}
-
-# Batch Normalization for stable training
-layers {
-  name: "fc6_bn"
-  type: BATCHNORM
-  bottom: "fc6"
-  top: "fc6_bn"
-}
-
-layers {
-  name: "fc7"
-  type: INNER_PRODUCT
-  bottom: "fc6_bn"
-  top: "fc7"
-  inner_product_param {
-    num_output: 1024  # Increased neurons for better capacity
-  }
-}
-layers {
-  name: "relu7"
-  type: RELU
-  bottom: "fc7"
-  top: "fc7"
-}
-layers {
-  name: "drop7"
-  type: DROPOUT
-  bottom: "fc7"
-  top: "fc7"
-  dropout_param {
-    dropout_ratio: 0.6  # Increased dropout
-  }
-}
-
-# New Fully Connected and Softmax Layers
-layers {
-  name: "fc8"
-  type: INNER_PRODUCT
-  bottom: "fc7"
-  top: "fc8"
-  inner_product_param {
-    num_output: 512
-  }
-}
-
+# Added a new convolutional layer after conv3 with proper pooling
 layers {
   name: "conv_new"
   type: CONVOLUTION
@@ -215,21 +121,84 @@ layers {
   top: "conv_new"
 }
 layers {
+  name: "pool_new"
+  type: POOLING
+  bottom: "conv_new"
+  top: "pool_new"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+
+layers {
+  name: "fc6"
+  type: INNER_PRODUCT
+  bottom: "pool_new"  # Connected to the new pooling layer
+  top: "fc6"
+  inner_product_param {
+    num_output: 512
+  }
+}
+layers {
+  name: "relu6"
+  type: RELU
+  bottom: "fc6"
+  top: "fc6"
+}
+layers {
+  name: "drop6"
+  type: DROPOUT
+  bottom: "fc6"
+  top: "fc6"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layers {
+  name: "fc7"
+  type: INNER_PRODUCT
+  bottom: "fc6"
+  top: "fc7"
+  inner_product_param {
+    num_output: 512
+  }
+}
+layers {
+  name: "relu7"
+  type: RELU
+  bottom: "fc7"
+  top: "fc7"
+}
+layers {
+  name: "drop7"
+  type: DROPOUT
+  bottom: "fc7"
+  top: "fc7"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+# Newly added fully connected layer before final output
+layers {
   name: "fc_new"
   type: INNER_PRODUCT
-  bottom: "fc8"
+  bottom: "fc7"
   top: "fc_new"
   inner_product_param {
     num_output: 512
   }
 }
+
 layers {
   name: "fc_final"
   type: INNER_PRODUCT
   bottom: "fc_new"
   top: "fc_final"
   inner_product_param {
-    num_output: 4  # Increased number of output neurons if required
+    num_output: 4  # Adjust output classes if needed
   }
 }
 layers {
