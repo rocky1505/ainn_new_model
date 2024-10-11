@@ -173,8 +173,7 @@ layers {
   bottom: "fc8"
   top: "prob"
 }
-# Additional convolutional layer after last conv layer
-layer {
+layers {
   name: "conv_new"
   type: "Convolution"
   bottom: "conv5"  # Replace with the appropriate previous layer
@@ -186,37 +185,31 @@ layer {
     pad: 1
   }
 }
-layer {
+layers {
   name: "relu_new"
   type: "ReLU"
   bottom: "conv_new"
   top: "conv_new"
 }
-
-# Additional fully connected layer after existing FC layers
-layer {
+layers {
   name: "fc_new"
   type: "InnerProduct"
-  bottom: "fc7"  # Replace with the previous fully connected layer
+  bottom: "fc7"
   top: "fc_new"
   inner_product_param {
-    num_output: 512  # New FC layer for more learning capacity
+    num_output: 512
   }
 }
-
-# New output layer with new categories
-layer {
+layers {
   name: "fc_final"
   type: "InnerProduct"
   bottom: "fc_new"
   top: "fc_final"
   inner_product_param {
-    num_output: 4  # Adjust for your specific categories
+    num_output: 4
   }
 }
-
-# Softmax layer for classification
-layer {
+layers {
   name: "prob"
   type: "Softmax"
   bottom: "fc_final"
