@@ -1,9 +1,9 @@
 name: "Caffenet"
 input: "data"
-input_dim: 64  # Increased batch size
-input_dim: 3   # channels (RGB)
-input_dim: 224 # height
-input_dim: 224 # width
+input_dim: 64  # Batch size
+input_dim: 3   # Channels (RGB)
+input_dim: 224 # Height
+input_dim: 224 # Width
 
 # First Convolution Block
 layer {
