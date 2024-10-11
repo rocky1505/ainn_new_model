@@ -5,7 +5,7 @@ input_dim: 3
 input_dim: 227
 input_dim: 227
 
-# Freeze only the first few layers
+# Convolutional Layers
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -17,7 +17,7 @@ layers {
     stride: 4
   }
   param {
-    lr_mult: 0  # Freeze this layer
+    lr_mult: 0.1  # Reduced learning rate for early layers
   }
 }
 layers {
@@ -25,9 +25,6 @@ layers {
   type: RELU
   bottom: "conv1"
   top: "conv1"
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "pool1"
@@ -38,9 +35,6 @@ layers {
     pool: MAX
     kernel_size: 3
     stride: 2
-  }
-  param {
-    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -53,12 +47,9 @@ layers {
     alpha: 0.0001
     beta: 0.75
   }
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 
-# Unfreeze the next layers to allow fine-tuning
+# Unfreezing conv2 for fine-tuning with adjusted learning rate
 layers {
   name: "conv2"
   type: CONVOLUTION
@@ -70,7 +61,7 @@ layers {
     kernel_size: 5
   }
   param {
-    lr_mult: 1  # Allow this layer to be trained
+    lr_mult: 0.1  # Unfreeze with a lower learning rate for better fine-tuning
   }
 }
 layers {
@@ -102,7 +93,7 @@ layers {
   }
 }
 
-# Unfreeze the next layers
+# Unfreezing conv3 for fine-tuning
 layers {
   name: "conv3"
   type: CONVOLUTION
@@ -114,7 +105,7 @@ layers {
     kernel_size: 3
   }
   param {
-    lr_mult: 1  # Allow this layer to be trained
+    lr_mult: 0.1  # Unfreezing conv3 with fine-tuning
   }
 }
 layers {
@@ -124,10 +115,10 @@ layers {
   top: "conv3"
 }
 layers {
-  name: "pool3"
+  name: "pool5"
   type: POOLING
   bottom: "conv3"
-  top: "pool3"
+  top: "pool5"
   pooling_param {
     pool: MAX
     kernel_size: 3
@@ -135,17 +126,14 @@ layers {
   }
 }
 
-# Unfreeze fully connected layers
+# Fully connected layers with increased capacity and dropout
 layers {
   name: "fc6"
   type: INNER_PRODUCT
-  bottom: "pool3"
+  bottom: "pool5"
   top: "fc6"
   inner_product_param {
-    num_output: 512
-  }
-  param {
-    lr_mult: 1  # Allow this layer to be trained
+    num_output: 1024  # Increased from 512 for better feature abstraction
   }
 }
 layers {
@@ -160,19 +148,25 @@ layers {
   bottom: "fc6"
   top: "fc6"
   dropout_param {
-    dropout_ratio: 0.5
+    dropout_ratio: 0.6  # Increased dropout for regularization
   }
 }
+
+# Batch Normalization for stable training
+layers {
+  name: "fc6_bn"
+  type: BATCHNORM
+  bottom: "fc6"
+  top: "fc6_bn"
+}
+
 layers {
   name: "fc7"
   type: INNER_PRODUCT
-  bottom: "fc6"
+  bottom: "fc6_bn"
   top: "fc7"
   inner_product_param {
-    num_output: 512
-  }
-  param {
-    lr_mult: 1  # Allow this layer to be trained
+    num_output: 1024  # Increased neurons for better capacity
   }
 }
 layers {
@@ -187,115 +181,60 @@ layers {
   bottom: "fc7"
   top: "fc7"
   dropout_param {
-    dropout_ratio: 0.5
+    dropout_ratio: 0.6  # Increased dropout
   }
 }
+
+# New Fully Connected and Softmax Layers
 layers {
   name: "fc8"
   type: INNER_PRODUCT
   bottom: "fc7"
   top: "fc8"
   inner_product_param {
-    num_output: 2  # Number of classes for gender identification
+    num_output: 512
   }
 }
-layers {
-  name: "prob"
-  type: SOFTMAX
-  bottom: "fc8"
-  top: "prob"
-}
 
-# New layers for fine-tuning
 layers {
-  name: "conv4"
+  name: "conv_new"
   type: CONVOLUTION
-  bottom: "pool3"
-  top: "conv4"
+  bottom: "conv3"
+  top: "conv_new"
   convolution_param {
-    num_output: 128
+    num_output: 256
     kernel_size: 3
-    pad: 1
     stride: 1
-    weight_filler {
-      type: "xavier"
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-  param {
-    lr_mult: 1  # Allow this layer to be trained
+    pad: 1
   }
 }
 layers {
-  name: "relu4"
+  name: "relu_new"
   type: RELU
-  bottom: "conv4"
-  top: "conv4"
+  bottom: "conv_new"
+  top: "conv_new"
 }
 layers {
-  name: "pool4"
-  type: POOLING
-  bottom: "conv4"
-  top: "pool4"
-  pooling_param {
-    pool: MAX
-    kernel_size: 3
-    stride: 2
-  }
-}
-layers {
-  name: "drop8"
-  type: DROPOUT
-  bottom: "conv4"
-  top: "conv4"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layers {
-  name: "fc9"
+  name: "fc_new"
   type: INNER_PRODUCT
-  bottom: "pool4"
-  top: "fc9"
+  bottom: "fc8"
+  top: "fc_new"
   inner_product_param {
-    num_output: 2  # Number of classes for gender identification
-  }
-  param {
-    lr_mult: 1  # Allow this layer to be trained
+    num_output: 512
   }
 }
 layers {
-  name: "prob_new"
+  name: "fc_final"
+  type: INNER_PRODUCT
+  bottom: "fc_new"
+  top: "fc_final"
+  inner_product_param {
+    num_output: 4  # Increased number of output neurons if required
+  }
+}
+layers {
+  name: "softmax_final"
   type: SOFTMAX
-  bottom: "fc9"
-  top: "prob_new"
-}
-
-# Additional fine-tuning techniques
-layers {
-  name: "batch_norm1"
-  type: BATCHNORM
-  bottom: "fc6"
-  top: "fc6_bn"
-}
-layers {
-  name: "scale1"
-  type: SCALE
-  bottom: "fc6_bn"
-  top: "fc6"
-}
-layers {
-  name: "batch_norm2"
-  type: BATCHNORM
-  bottom: "fc7"
-  top: "fc7_bn"
-}
-layers {
-  name: "scale2"
-  type: SCALE
-  bottom: "fc7_bn"
-  top: "fc7"
+  bottom: "fc_final"
+  top: "softmax_final"
 }
