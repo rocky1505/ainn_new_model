@@ -5,6 +5,7 @@ input_dim: 3   # channels (RGB)
 input_dim: 227 # height
 input_dim: 227 # width
 
+# First Convolution Block
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -44,6 +45,8 @@ layers {
     beta: 0.75
   }
 }
+
+# Second Convolution Block
 layers {
   name: "conv2"
   type: CONVOLUTION
@@ -83,6 +86,8 @@ layers {
     beta: 0.75
   }
 }
+
+# Third Convolution Block
 layers {
   name: "conv3"
   type: CONVOLUTION
@@ -101,7 +106,7 @@ layers {
   top: "conv3"
 }
 
-# Added a new convolutional layer after conv3 with proper pooling
+# New Convolution Block (Added Layer)
 layers {
   name: "conv_new"
   type: CONVOLUTION
@@ -132,10 +137,11 @@ layers {
   }
 }
 
+# Fully Connected Layers
 layers {
   name: "fc6"
   type: INNER_PRODUCT
-  bottom: "pool_new"  # Connected to the new pooling layer
+  bottom: "pool_new"
   top: "fc6"
   inner_product_param {
     num_output: 512
@@ -181,7 +187,7 @@ layers {
   }
 }
 
-# Newly added fully connected layer before final output
+# Added Fully Connected Layer
 layers {
   name: "fc_new"
   type: INNER_PRODUCT
@@ -192,13 +198,14 @@ layers {
   }
 }
 
+# Final Output Layer
 layers {
   name: "fc_final"
   type: INNER_PRODUCT
   bottom: "fc_new"
   top: "fc_final"
   inner_product_param {
-    num_output: 4  # Adjust output classes if needed
+    num_output: 4  # Number of classes (adjust as needed)
   }
 }
 layers {
