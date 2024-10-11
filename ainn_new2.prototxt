@@ -5,7 +5,7 @@ input_dim: 3
 input_dim: 227
 input_dim: 227
 
-# Freeze existing layers
+# Freeze only the first few layers
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -57,6 +57,8 @@ layers {
     lr_mult: 0  # Freeze this layer
   }
 }
+
+# Unfreeze the next layers to allow fine-tuning
 layers {
   name: "conv2"
   type: CONVOLUTION
@@ -68,7 +70,7 @@ layers {
     kernel_size: 5
   }
   param {
-    lr_mult: 0  # Freeze this layer
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
@@ -76,9 +78,6 @@ layers {
   type: RELU
   bottom: "conv2"
   top: "conv2"
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "pool2"
@@ -89,9 +88,6 @@ layers {
     pool: MAX
     kernel_size: 3
     stride: 2
-  }
-  param {
-    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -104,10 +100,9 @@ layers {
     alpha: 0.0001
     beta: 0.75
   }
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
+
+# Unfreeze the next layers
 layers {
   name: "conv3"
   type: CONVOLUTION
@@ -119,7 +114,7 @@ layers {
     kernel_size: 3
   }
   param {
-    lr_mult: 0  # Freeze this layer
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
@@ -127,9 +122,6 @@ layers {
   type: RELU
   bottom: "conv3"
   top: "conv3"
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "pool3"
@@ -141,10 +133,9 @@ layers {
     kernel_size: 3
     stride: 2
   }
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
+
+# Unfreeze fully connected layers
 layers {
   name: "fc6"
   type: INNER_PRODUCT
@@ -154,7 +145,7 @@ layers {
     num_output: 512
   }
   param {
-    lr_mult: 0  # Freeze this layer
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
@@ -162,9 +153,6 @@ layers {
   type: RELU
   bottom: "fc6"
   top: "fc6"
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "drop6"
@@ -184,7 +172,7 @@ layers {
     num_output: 512
   }
   param {
-    lr_mult: 0  # Freeze this layer
+    lr_mult: 1  # Allow this layer to be trained
   }
 }
 layers {
@@ -192,9 +180,6 @@ layers {
   type: RELU
   bottom: "fc7"
   top: "fc7"
-  param {
-    lr_mult: 0  # Freeze this layer
-  }
 }
 layers {
   name: "drop7"
