@@ -5,7 +5,7 @@ input_dim: 3
 input_dim: 227
 input_dim: 227
 
-# Existing layers with frozen weights
+# Freeze existing layers
 layers {
   name: "conv1"
   type: CONVOLUTION
@@ -26,7 +26,7 @@ layers {
   bottom: "conv1"
   top: "conv1"
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -40,7 +40,7 @@ layers {
     stride: 2
   }
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -77,7 +77,7 @@ layers {
   bottom: "conv2"
   top: "conv2"
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -91,7 +91,7 @@ layers {
     stride: 2
   }
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -128,7 +128,7 @@ layers {
   bottom: "conv3"
   top: "conv3"
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -142,7 +142,7 @@ layers {
     stride: 2
   }
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -163,7 +163,7 @@ layers {
   bottom: "fc6"
   top: "fc6"
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -193,7 +193,7 @@ layers {
   bottom: "fc7"
   top: "fc7"
   param {
-    lr_mult: 0  # Explicitly mark as frozen (not strictly necessary)
+    lr_mult: 0  # Freeze this layer
   }
 }
 layers {
@@ -221,14 +221,14 @@ layers {
   top: "prob"
 }
 
-# Adding additional layers to enhance model performance
+# New layers for fine-tuning
 layers {
   name: "conv4"
   type: CONVOLUTION
   bottom: "pool3"
   top: "conv4"
   convolution_param {
-    num_output: 256
+    num_output: 128
     kernel_size: 3
     pad: 1
     stride: 1
@@ -251,6 +251,17 @@ layers {
   top: "conv4"
 }
 layers {
+  name: "pool4"
+  type: POOLING
+  bottom: "conv4"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layers {
   name: "drop8"
   type: DROPOUT
   bottom: "conv4"
@@ -262,10 +273,10 @@ layers {
 layers {
   name: "fc9"
   type: INNER_PRODUCT
-  bottom: "conv4"
+  bottom: "pool4"
   top: "fc9"
   inner_product_param {
-    num_output: 2  # Number of classes
+    num_output: 2  # Number of classes for gender identification
   }
   param {
     lr_mult: 1  # Allow this layer to be trained
@@ -276,4 +287,30 @@ layers {
   type: SOFTMAX
   bottom: "fc9"
   top: "prob_new"
+}
+
+# Additional fine-tuning techniques
+layers {
+  name: "batch_norm1"
+  type: BATCHNORM
+  bottom: "fc6"
+  top: "fc6_bn"
+}
+layers {
+  name: "scale1"
+  type: SCALE
+  bottom: "fc6_bn"
+  top: "fc6"
+}
+layers {
+  name: "batch_norm2"
+  type: BATCHNORM
+  bottom: "fc7"
+  top: "fc7_bn"
+}
+layers {
+  name: "scale2"
+  type: SCALE
+  bottom: "fc7_bn"
+  top: "fc7"
 }
